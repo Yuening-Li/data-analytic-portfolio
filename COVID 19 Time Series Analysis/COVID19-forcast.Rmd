@@ -1,0 +1,385 @@
+---
+title: "COVID-19 Project; DATA 583"
+author: "Yuening Li, Sneha Mikkilineni Durga, Binal Patel"
+date: "3/30/2020"
+output: html_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE,warning=FALSE)
+library(dplyr)
+library(forecast)
+library(ggplot2)
+```
+
+# COVID-19 Time Series Analysis
+#### Team members: Sneha Mikkilineni Durga, Binal Patel, Yuening Li
+
+
+# Analysis of COVID-19 in Canada
+
+##### Read in canada data
+
+We split the data to training and testing; Training data: cases of COVID 19 in Canada From 2020-01-26 to 2020-04-18; Testing data: cases of COVID 19 in Canada From 2020-4-19 to 2020-4-27 
+
+```{r}
+## Training data: cases of COVID 19 in Canada From 2020-01-26 to 2020-04-18
+canada <- read.csv("./Canada.csv")
+canada$date = as.Date(canada$date, format = "%m/%d/%Y")
+train<- canada[,c("date","total_cases")]
+
+# Testing data: cases of COVID 19 in Canada From 2020-4-19 to 2020-4-27 
+canada_predict <- read.csv("./canada_prediction.csv")
+canada_predict$date = as.Date(canada_predict$ï..date, format = "%m/%d/%Y")
+test <- canada_predict[,c("date","total_cases")]
+
+```
+
+##### inspect the training data
+
+```{r,out.width= "50%", out.extra='style="float:right; padding:10px"'}
+library(ggplot2)
+ggplot(train, aes(y=total_cases, x=date)) +
+  geom_point() +
+  scale_x_date(date_labels = "%m/%d",date_breaks = "1 day")+
+  xlab("date")+
+  ylab("total cases")+
+  ggtitle("Total cases of COVID 19 in Canada From 2020-01-26 to 2020-04-18") +
+  theme_bw()+
+  theme(axis.text.x = element_text(size = 5,angle = 90,hjust = 1))
+```
+
+
+##### Model 1. Arima (Auto regressive time series)
+
+Making data frame into time series object
+
+```{r}
+# xts library used for time series 
+library(xts)
+case <- train$total_cases
+names(case)<-as.character(train$date)
+case<-as.xts(case)
+```
+
+test for stationary of time series
+
+```{r,eval=FALSE}
+library(tseries)
+adf.test(case)
+```
+
+p-value = 0.99 suggest non-stationary, Next we use auto.arima() function to fit appropriate arima for the data, the function would make the time series stationary for us.
+
+```{r}
+library(forecast)
+case_arima <- auto.arima(case)
+case_arima
+```
+
+The appropriate model for canada covid 19 new cases is ARIMA(0,2,1) process, which means order 1 moving average and degree of defferencing 2.
+
+Next, Use fitted time series model to
+i. predict the next 8 days total cases of covid 19 , and
+ii. compare the predicted values with the actual total cases from 2020-4-19 to 2020-4-27 by subtracting the actual values from the predictions and dividing by the estimated standard errors.
+
+```{r}
+nsteps = 9
+case_pred <- predict(case_arima, n.ahead=nsteps)
+(case_pred$pred - test$total_cases)/case_pred$se
+```
+
+All values are between -2 and 2, suggesting the model is quite accurate
+
+```{r,out.width= "30%"}
+test$pred<- case_pred$pred 
+ggplot(test, aes(date)) + 
+  geom_line(aes(y = total_cases, colour = "total_cases")) + 
+  geom_line(aes(y = pred, colour = "pred"))+
+  xlab("date")+
+  ylab("total cases")+
+  ggtitle("Actual and Predicted Total cases of COVID 19 in Canada")
+```
+
+The plot suggest we acquire quite accurate predictions.
+
+##### Other Models
+
+We convert the dates into "days since 2020/1/26" as this would give numeric values in form of 1, 2, 3, 4...
+
+```{r}
+# train data
+x<-c(1:nrow(train))
+y<- train$total_cases
+new <- data.frame(x,y)
+# test data
+x<-c(1:nrow(test))
+y<- test$total_cases
+new_data <- data.frame(x,y)
+```
+
+###### Model 1. Quadratic Polynomial regression
+
+```{r,out.width= "30%"}
+library(DAAG)
+case_lm2 <- lm(y ~ x + I(x^2), data = new)
+plot(new, pch=16,xlab="Number of days from 2020-1-26",ylab = "Total cases",main = "Quadratic")
+with(new, lines(x, predict(case_lm2), col=4, lwd=2))
+```
+
+The plot suggest we might need higher order polynomial model for better fit. 
+
+###### Model 2. Higher order Polynomial Regression Model, WIth order = 4
+
+```{r,out.width= "30%"}
+# polynomial
+case.poly.lm <- lm(y ~ poly(x,4),data=new)
+plot(new, pch=16,xlab="Number of days from 2020-1-26",ylab = "Total cases", main = "General Polynomial with order 4")
+with(new, lines(x, predict(case.poly.lm), col=3, lwd=2))
+```
+
+###### Model 3. Addictive (Penalized Spline) Model
+
+Use the gam() function in the mgcv package to fit the additive Penalized Spline model
+
+```{r,out.width= "30%"}
+library(mgcv)
+case_gam <- gam(y ~ s(x, k=6), data = new)
+plot(new, pch=16,xlab="Number of days from 2020-1-26",ylab = "Total cases", main = "Penalized Spline")
+with(new, lines(x, predict(case_gam), col=4, lwd=2))
+```
+
+
+###### Model 4. B-Spline
+
+```{r,out.width= "30%"}
+library(splines)
+case_b_spl <- lm(y ~ bs(x,knots=c(40,50,55,60,65),degree=1,intercept=TRUE)-1,data=new)
+plot(new, pch=16,xlab="Number of days from 2020-1-26",ylab = "Total cases", main = "B-Spline")
+with(new, lines(x, predict(case_b_spl), col=4, lwd=2))
+```
+
+###### Model 5. GLM: Poisson regression
+
+for count responses, like total number of covid 19 cases, A poisson or quasipoisson GLM is a reasonable guess for such data.
+
+```{r,out.width= "30%"}
+case_glm<- glm(y ~ x, family = quasipoisson, data = new)
+plot(new, pch=16,xlab="Number of days from 2020-1-26",ylab = "Total cases", main = "GLM:Poisson")
+with(new, lines(x, predict(case_glm,type="response"), col=4, lwd=2))
+```
+
+##### Model 6. Negative binomial Model
+
+An alternative to quisilkelihood here is Negative binomial model, This is a model for counts which allows for overdispersion.
+
+```{r}
+library(MASS)
+case_nb <- glm.nb(y~ x, data = new)
+plot(new, pch=16,xlab="Number of days from 2020-1-26",ylab = "Total cases", main = "Negative binomial")
+with(new, lines(x, predict(case_nb,type="response"), col=4, lwd=2))
+```
+
+The residual deviance is is close to the residual degrees of freedom, supporting the model
+
+##### Which Model fits best?
+
+Using the predict() function with the actual total cases from 2020-4-20 to 2020-4-27 as newdata object, compute the mean of the squares of the prediction errors for total cases to decide which of the above models is best for the data.(MSE)
+
+```{r,out.width= "30%"}
+
+# case_arima case.poly.lm  case_gam  case_b_spl  case_glm
+# time series 22235232
+print("time series MSE")
+mean((predict(case_arima, n.ahead=9)$pred - new_data$y)^2)
+# polynomial 13711510567
+print("polynomial with order 4 MSE")
+mean((predict(case.poly.lm, newdata=new_data) - new_data$y)^2)
+# additive/Penalized Splines 13568357726
+print("Penalized Splines Model MSE")
+mean((predict(case_gam, newdata=new_data) - new_data$y)^2)
+# B-spline 13605013369
+print("B-spline Model MSE")
+mean((predict(case_b_spl, newdata=new_data) - new_data$y)^2)
+# GLM quasipoisson regresson 13605588889
+print("GLM quasipoisson MSE")
+mean((predict(case_glm, newdata=new_data) - new_data$y)^2)
+print("GLM Negative binomial Model MSE")
+mean((predict(case_glm, newdata=new_data) - new_data$y)^2)
+```
+
+We find that time series model perform much better than other models.
+
+
+# Canada Provincial Data
+
+##### Importing Data
+
+```{r}
+cases_prov <- read.csv("cases_timeseries_prov.csv")
+cases_BC<- subset(cases_prov,cases_prov$province=='BC')
+cases_BC<-cases_BC[,-c(1,3)]
+cases_Alberta<- subset(cases_prov,cases_prov$province=='Alberta') 
+cases_Alberta<-cases_Alberta[,-c(1,3)]
+cases_Ont<- subset(cases_prov,cases_prov$province=='Ontario')
+cases_Ont<-cases_Ont[,-c(1,3)]
+cases_Quebec<- subset(cases_prov,cases_prov$province=='Quebec')
+cases_Quebec<-cases_Quebec[,-c(1,3)]
+
+```
+
+##### Data exploration
+
+```{r}
+normalize <- function(x) {
+return ((x - min(x)) / (max(x) - min(x)))
+}
+cases_prov <- read.csv("cases_timeseries_prov.csv")
+cases_prov$date_report = as.Date(cases_prov$date_report, format = "%d-%m-%Y")
+cases_prov%>%
+    ggplot(aes(x=date_report, y=normalize(cases))) +  geom_line(aes(group=1))+
+    facet_wrap( ~ province, scales = "free_x")+ylab("Cases")+xlab("Date")
+
+```
+
+##### Making data frame into time series object
+
+```{r}
+library(xts)
+can_bcts=xts(cases_BC$cumulative_cases,as.Date(cases_BC$date_report,format='%d-%m-%Y'))
+can_abts=xts(cases_Alberta$cumulative_cases,as.Date(cases_Alberta$date_report,format='%d-%m-%Y'))
+can_onts=xts(cases_Ont$cumulative_cases,as.Date(cases_Ont$date_report,format='%d-%m-%Y'))
+can_qts=xts(cases_Quebec$cumulative_cases,as.Date(cases_Quebec$date_report,format='%d-%m-%Y'))
+```
+
+
+##### Plotting Autocorrelation and Time Series plots to check for stationarity
+
+```{r}
+#BC
+ggtsdisplay(can_bcts) #non stationary, decaying ACF
+
+#Alberta
+ggtsdisplay(can_abts) #non stationary, decaying ACF
+
+#Ontario
+ggtsdisplay(can_onts) #non stationary, decaying ACF
+
+#Quebec
+ggtsdisplay(can_qts) #non stationary, decaying ACF
+
+```
+
+Since the ACF plot shows a geometric decay and there is an increasing trend in the total number of cases, we know that the time series data is non stationary. Using a statistical test method, ADF we can clarify whether the time series is stationary or not. 
+
+##### Applying Differencing to the four provinces
+
+British Columbia 
+
+```{r}
+library(tseries)
+difference<-na.omit(diff(can_bcts))
+adf.test(can_bcts) #Non stationary pvalue > 0.05
+adf.test(difference) #Non stationary pvalue >.05
+diff2<-na.omit(diff(difference)) #Stationary after twice differencing pvalue < 0.05
+adf.test(diff2)
+```
+
+Alberta 
+
+```{r}
+adf.test(can_abts) #Non stationary pvalue > 0.05
+diff_ab<-na.omit(diff(can_bcts))
+adf.test(diff_ab) #Non stationary pvalue >.05
+diff2ab<-na.omit(diff(diff_ab)) #Stationary after twice differencing pvalue < 0.05
+adf.test(diff2ab)
+```
+
+Ontario
+
+```{r}
+adf.test(can_onts) #Non stationary pvalue > 0.05
+diff_on<-na.omit(diff(can_onts))
+adf.test(diff_on) #Non stationary pvalue >.05
+diff2on<-na.omit(diff(diff_on)) #Stationary after twice differencing pvalue < 0.05
+adf.test(diff2on)
+```
+
+Quebec
+
+```{r}
+adf.test(can_qts) #Non stationary pvalue > 0.05
+diff_q<-na.omit(diff(can_qts))
+adf.test(diff_q) #Non stationary pvalue >.05
+diff2q<-na.omit(diff(diff_q)) #Stationary after twice differencing pvalue < 0.05
+adf.test(diff2q)
+```
+
+In order to make the time series stationary, we had to take a difference twice to get a p-value less than 0.05. When we use the ARIMA model, we will be using d=2 as our parameter.
+
+##### ARIMA Model for all the four provinces
+
+Now using Arima model to forecast number of cases in the next 20 days
+
+British Columbia
+
+```{r}
+library(ggplot2)
+dd<-auto.arima(can_bcts)
+dd
+forcastfit.bc <- Arima(can_bcts, order=c(1,2, 2))
+summary(forcastfit.bc)
+f=forecast(forcastfit.bc, n.ahead=20)
+plot(forecast(forcastfit.bc,h=20),xlab = "Days",ylab="Number of Cumulative Cases")
+forecast(forcastfit.bc,20)
+#ggtsdiag(forcastfit.ar) #plotting residuals
+
+```
+
+
+Alberta
+
+```{r}
+
+dd<-auto.arima(can_abts)
+dd
+forcastfit.ab <- Arima(can_abts, order=c(1, 2, 0))
+summary(forcastfit.ab)
+f=forecast(forcastfit.ab, n.ahead=20)
+plot(forecast(forcastfit.ab,h=20),xlab = "Days",ylab="Number of Cumulative Cases")
+forecast(forcastfit.ab,20)
+#ggtsdiag(forcastfit.ar) #plotting residuals
+
+```
+
+
+Ontario
+
+```{r}
+dd<-auto.arima(can_onts)
+dd
+forcastfit.on <- Arima(can_onts, order=c(1, 2, 0))
+summary(forcastfit.on)
+f=forecast(forcastfit.on, n.ahead=20)
+plot(forecast(forcastfit.on,h=20),xlab = "Days",ylab="Number of Cumulative Cases")
+forecast(forcastfit.on,20)
+
+```
+
+
+Quebec
+
+```{r}
+dd<-auto.arima(can_qts)
+dd
+forcastfit.q <- Arima(can_qts, order=c(1, 2, 3))
+summary(forcastfit.q)
+f=forecast(forcastfit.q, n.ahead=20)
+plot(forecast(forcastfit.q,h=20),xlab = "Days",ylab="Number of Cumulative Cases")
+forecast(forcastfit.q,20)
+
+```
+
+
+
+
