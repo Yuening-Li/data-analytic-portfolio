@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:insert="~{header :: header}">
+
+</head>
+<body>
+	<nav th:insert="~{navbar :: navbar}"></nav>
+	<div class="jumbotron jumbotron-fluid">
+	  <div class="container">
+	    <h1 class="display-4" align = "center">Register</h1>
+	    <form action="#" th:action="@{/register}" th:object="${newUser}" method="post">
+			<div class="form-group">
+				<label>First Name</label> 
+				<input type="text" name="firstName" class="form-control" th:value="*{firstName}">
+			</div>
+			<div class="form-group">
+				<label>Last Name</label> 
+				<input type="text" name="lastName" class="form-control" th:value="*{lastName}">
+			</div>
+			<div class="form-group">
+				<label>Email</label> 
+				<input type="text" name="email" class="form-control" th:value="*{email}">
+			</div>
+			<div class="form-group">
+				<label>Username</label> 
+				<input type="text" name="username" class="form-control" th:value="*{username}">
+			</div>
+			<div class="form-group">
+				<label>Password</label> 
+				<input type="password" name="password" class="form-control" th:value="*{password}">
+			</div>
+			<button style = width:100% type="submit" class="btn btn-success">Register</button>
+		</form>
+	  </div>
+	</div>
+	
+	
+
+</body>
+</html>

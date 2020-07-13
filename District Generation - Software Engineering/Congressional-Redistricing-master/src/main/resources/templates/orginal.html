@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head th:insert="~{header :: header}">
+</head>
+<body>
+	<nav th:insert="~{navbar :: navbar}"></nav>
+
+
+
+	<div class="container-fluid">
+		  	<div id="map"></div>
+		  		<script th:inline="javascript">	
+					/*<![CDATA[*/
+						var stateId = /*[[${id}]]*/
+						var size = /*[[${districtSize}]]*/
+					/*]]>*/
+					
+					var map;
+					//Iowa
+					if(stateId === 19){
+						function initMap() {
+							map = new google.maps.Map(document.getElementById('map'), {
+								zoom : 7,
+								center : new google.maps.LatLng(42.2, -93.4),
+								fullscreenControl: true,
+								fullscreenControlOptions: {
+							        position: google.maps.ControlPosition.TOP_RIGHT
+							    },
+							    mapTypeControl: false,
+							    streetViewControl: false
+								
+							});
+							map.data.loadGeoJson('../json/Iowa/IA_CD1.json');
+							map.data.loadGeoJson('../json/Iowa/IA_CD2.json');
+							map.data.loadGeoJson('../json/Iowa/IA_CD3.json');
+							map.data.loadGeoJson('../json/Iowa/IA_CD4.json');
+							
+							//set style to polygons
+							map.data.setStyle(function(feature) {
+								var color = feature.getProperty('COLOR');
+								var weight = feature.getProperty('strokeWeight');
+								return {
+									fillColor : color,
+									strokeWeight : weight,
+									fillOpacity: 1
+								};
+							});
+					
+							
+							map.data.addListener('mouseover', function(event) {
+								map.data.revertStyle();
+								map.data.overrideStyle(event.feature, {
+									strokeWeight : 3
+								});
+								document.getElementById('infoText').innerHTML = '<h6>Precinct Informations</h6>' 
+								+  '<b>DistrictId: </b>' +  event.feature.getProperty('DISTRICT') + '<br />'
+								+  '<b>PrecinctId: </b>' +  event.feature.getProperty('GEOID10') + '<br />'
+								+  '<b>Name: </b>' +  event.feature.getProperty('NAME') + '<br />'
+								+  '<b>Population: </b>' +  event.feature.getProperty('POP100') + '<br />'
+								+  '<b>Rep Vote: </b>' +  event.feature.getProperty('REP_VOT') + '<br />'
+								+  '<b>Dem Vote: </b>' +  event.feature.getProperty('DEM_VOT') + '<br />'
+								;
+								
+							});
+							map.data.addListener('mouseout', function(event) {
+								document.getElementById('infoText').innerHTML = '<h6>Precinct Informations</h6>' + 'Hover over a precinct';
+								map.data.revertStyle();
+							});
+								
+							// Create a div to hold the control.
+							var info = document.createElement('div');
+							info.setAttribute("id", "info");
+							var infoUI = document.createElement('div');
+							infoUI.style.backgroundColor = '#fff';
+							infoUI.style.border = '2px solid #fff';
+							infoUI.style.borderRadius = '3px';
+							infoUI.style.boxShadow = '0 2px 6px rgba(0,0,0,.3)';
+							infoUI.style.cursor = 'pointer';
+							infoUI.style.marginBottom = '22px';
+							infoUI.style.textAlign = 'left';
+							info.appendChild(infoUI);
+	
+							// Set CSS for the control interior.
+							var infoText = document.createElement('div');
+							infoText.setAttribute("id", "infoText");
+							infoText.style.color = 'rgb(25,25,25)';
+							infoText.style.fontFamily = 'Roboto,Arial,sans-serif';
+							infoText.style.fontSize = '14px';
+							infoText.style.lineHeight = '20px';
+							infoText.style.paddingLeft = '5px';
+							infoText.style.paddingRight = '5px';
+							infoText.innerHTML = '<h6>Precinct Informations</h6>' + 'Hover over a precinct';
+							infoUI.appendChild(infoText);
+	
+							map.controls[google.maps.ControlPosition.TOP_LEFT].push(info);
+							
+							var legend = document.createElement('div');
+							info.setAttribute("id", "legend");
+							var controlUI = document.createElement('div');
+						  	controlUI.style.backgroundColor = '#fff';
+						  	controlUI.style.border = '2px solid #fff';
+						  	controlUI.style.borderRadius = '3px';
+						  	controlUI.style.boxShadow = '0 2px 6px rgba(0,0,0,.3)';
+						  	controlUI.style.cursor = 'pointer';
+						  	controlUI.style.marginBottom = '22px';
+						  	controlUI.style.textAlign = 'left';
+						  	legend.appendChild(controlUI);
+	
+						  	// Set CSS for the control interior.
+						  	var controlText = document.createElement('div');
+						  	controlText.setAttribute("id", "legendText");
+						  	controlText.style.color = 'rgb(25,25,25)';
+						  	controlText.style.fontFamily = 'Roboto,Arial,sans-serif';
+						  	controlText.style.fontSize = '14px';
+						  	controlText.style.lineHeight = '20px';
+						  	controlText.style.paddingLeft = '5px';
+						  	controlText.style.paddingRight = '5px';
+						  	controlText.innerHTML = '<h6>District Informations</h6>';
+						  	controlUI.appendChild(controlText);
+	
+						    map.controls[google.maps.ControlPosition.LEFT_BOTTOM].push(legend);
+						}//end init map
+						
+					}
+					//Arizona
+					else if (stateId === 4){
+						function initMap() {
+							map = new google.maps.Map(document.getElementById('map'), {
+								zoom : 7,
+								center : new google.maps.LatLng(34.04, -113.09),
+								fullscreenControl: true,
+								fullscreenControlOptions: {
+							        position: google.maps.ControlPosition.TOP_RIGHT
+							    },
+							    mapTypeControl: false,
+							    streetViewControl: false,
+								
+							});
+							map.data.loadGeoJson('../json/Arizona/AZ_CD1.json');
+							map.data.loadGeoJson('../json/Arizona/AZ_CD2.json');
+							map.data.loadGeoJson('../json/Arizona/AZ_CD3.json');
+							map.data.loadGeoJson('../json/Arizona/AZ_CD4.json');
+							map.data.loadGeoJson('../json/Arizona/AZ_CD5.json');
+							map.data.loadGeoJson('../json/Arizona/AZ_CD6.json');
+							map.data.loadGeoJson('../json/Arizona/AZ_CD7.json');
+							map.data.loadGeoJson('../json/Arizona/AZ_CD8.json');
+							map.data.loadGeoJson('../json/Arizona/AZ_CD9.json');
+							
+							//set style to polygons
+							map.data.setStyle(function(feature) {
+								var color = feature.getProperty('COLOR');
+								var weight = feature.getProperty('strokeWeight');
+								return {
+									fillColor : color,
+									strokeWeight : weight,
+									fillOpacity: 0.9
+								};
+							});
+							
+							
+							
+							map.data.addListener('mouseover', function(event) {
+								map.data.revertStyle();
+								map.data.overrideStyle(event.feature, {
+									strokeWeight : 3
+								});
+								document.getElementById('infoText').innerHTML = '<h6>Precinct Informations</h6>' 
+								+  '<b>DistrictId: </b>' +  event.feature.getProperty('DISTRICT') + '<br />'
+								+  '<b>PrecinctId: </b>' +  event.feature.getProperty('GEOID10') + '<br />'
+								+  '<b>Name: </b>' +  event.feature.getProperty('NAME') + '<br />'
+								+  '<b>Population: </b>' +  event.feature.getProperty('POP100') + '<br />'
+								+  '<b>Rep Vote: </b>' +  event.feature.getProperty('REP_VOT') + '<br />'
+								+  '<b>Dem Vote: </b>' +  event.feature.getProperty('DEM_VOT') + '<br />'
+								;
+								
+							});
+							map.data.addListener('mouseout', function(event) {
+								document.getElementById('infoText').innerHTML = '<h6>Precinct Informations</h6>' + 'Hover over a precinct';
+								map.data.revertStyle();
+							});
+								
+							// Create a div to hold the control.
+							var info = document.createElement('div');
+							info.setAttribute("id", "info");
+							var infoUI = document.createElement('div');
+							infoUI.style.backgroundColor = '#fff';
+							infoUI.style.border = '2px solid #fff';
+							infoUI.style.borderRadius = '3px';
+							infoUI.style.boxShadow = '0 2px 6px rgba(0,0,0,.3)';
+							infoUI.style.cursor = 'pointer';
+							infoUI.style.marginBottom = '22px';
+							infoUI.style.textAlign = 'left';
+							info.appendChild(infoUI);
+	
+							// Set CSS for the control interior.
+							var infoText = document.createElement('div');
+							infoText.setAttribute("id", "infoText");
+							infoText.style.color = 'rgb(25,25,25)';
+							infoText.style.fontFamily = 'Roboto,Arial,sans-serif';
+							infoText.style.fontSize = '14px';
+							infoText.style.lineHeight = '20px';
+							infoText.style.paddingLeft = '5px';
+							infoText.style.paddingRight = '5px';
+							infoText.innerHTML = '<h6>Precinct Informations</h6>' + 'Hover over a precinct';
+							infoUI.appendChild(infoText);
+	
+							map.controls[google.maps.ControlPosition.TOP_LEFT].push(info);
+							
+							var legend = document.createElement('div');
+							info.setAttribute("id", "legend");
+							var controlUI = document.createElement('div');
+						  	controlUI.style.backgroundColor = '#fff';
+						  	controlUI.style.border = '2px solid #fff';
+						  	controlUI.style.borderRadius = '3px';
+						  	controlUI.style.boxShadow = '0 2px 6px rgba(0,0,0,.3)';
+						  	controlUI.style.cursor = 'pointer';
+						  	controlUI.style.marginBottom = '22px';
+						  	controlUI.style.textAlign = 'left';
+						  	legend.appendChild(controlUI);
+	
+						  	// Set CSS for the control interior.
+						  	var controlText = document.createElement('div');
+						  	controlText.setAttribute("id", "legendText");
+						  	controlText.style.color = 'rgb(25,25,25)';
+						  	controlText.style.fontFamily = 'Roboto,Arial,sans-serif';
+						  	controlText.style.fontSize = '14px';
+						  	controlText.style.lineHeight = '20px';
+						  	controlText.style.paddingLeft = '5px';
+						  	controlText.style.paddingRight = '5px';
+						  	controlText.innerHTML = '<h6>District Informations</h6>';
+						  	controlUI.appendChild(controlText);
+	
+						    map.controls[google.maps.ControlPosition.LEFT_BOTTOM].push(legend);
+						}//end init map
+					}
+					
+					//Colorado
+					else if (stateId === 8){
+						function initMap() {
+							map = new google.maps.Map(document.getElementById('map'), {
+								zoom : 7,
+								center : new google.maps.LatLng(38.8, -105.7),
+								fullscreenControl: true,
+								fullscreenControlOptions: {
+							        position: google.maps.ControlPosition.TOP_RIGHT
+							    },
+							    mapTypeControl: false,
+							    streetViewControl: false,
+								
+							});
+							map.data.loadGeoJson('../json/Colorado/CO_CD1.json');
+							map.data.loadGeoJson('../json/Colorado/CO_CD2.json');
+							map.data.loadGeoJson('../json/Colorado/CO_CD3.json');
+							map.data.loadGeoJson('../json/Colorado/CO_CD4.json');
+							map.data.loadGeoJson('../json/Colorado/CO_CD5.json');
+							map.data.loadGeoJson('../json/Colorado/CO_CD6.json');
+							map.data.loadGeoJson('../json/Colorado/CO_CD7.json');
+	
+							
+							//set style to polygons
+							map.data.setStyle(function(feature) {
+								var color = feature.getProperty('COLOR');
+								var weight = feature.getProperty('strokeWeight');
+								return {
+									fillColor : color,
+									strokeWeight : weight,
+									fillOpacity: 0.9
+								};
+							});
+							
+							
+							
+							map.data.addListener('mouseover', function(event) {
+								map.data.revertStyle();
+								map.data.overrideStyle(event.feature, {
+									strokeWeight : 3
+								});
+								document.getElementById('infoText').innerHTML = '<h6>Precinct Informations</h6>' 
+								+  '<b>DistrictId: </b>' +  event.feature.getProperty('DISTRICT') + '<br />'
+								+  '<b>PrecinctId: </b>' +  event.feature.getProperty('GEOID10') + '<br />'
+								+  '<b>Name: </b>' +  event.feature.getProperty('NAME') + '<br />'
+								+  '<b>Population: </b>' +  event.feature.getProperty('POP100') + '<br />'
+								+  '<b>Rep Vote: </b>' +  event.feature.getProperty('REP_VOT') + '<br />'
+								+  '<b>Dem Vote: </b>' +  event.feature.getProperty('DEM_VOT') + '<br />'
+								;
+								
+							});
+							map.data.addListener('mouseout', function(event) {
+								document.getElementById('infoText').innerHTML = '<h6>Precinct Informations</h6>' + 'Hover over a precinct';
+								map.data.revertStyle();
+							});
+								
+							// Create a div to hold the control.
+							var info = document.createElement('div');
+							info.setAttribute("id", "info");
+							var infoUI = document.createElement('div');
+							infoUI.style.backgroundColor = '#fff';
+							infoUI.style.border = '2px solid #fff';
+							infoUI.style.borderRadius = '3px';
+							infoUI.style.boxShadow = '0 2px 6px rgba(0,0,0,.3)';
+							infoUI.style.cursor = 'pointer';
+							infoUI.style.marginBottom = '22px';
+							infoUI.style.textAlign = 'left';
+							info.appendChild(infoUI);
+	
+							// Set CSS for the control interior.
+							var infoText = document.createElement('div');
+							infoText.setAttribute("id", "infoText");
+							infoText.style.color = 'rgb(25,25,25)';
+							infoText.style.fontFamily = 'Roboto,Arial,sans-serif';
+							infoText.style.fontSize = '14px';
+							infoText.style.lineHeight = '20px';
+							infoText.style.paddingLeft = '5px';
+							infoText.style.paddingRight = '5px';
+							infoText.innerHTML = '<h6>Precinct Informations</h6>' + 'Hover over a precinct';
+							infoUI.appendChild(infoText);
+	
+							map.controls[google.maps.ControlPosition.TOP_LEFT].push(info);
+							
+							var legend = document.createElement('div');
+							info.setAttribute("id", "legend");
+							var controlUI = document.createElement('div');
+						  	controlUI.style.backgroundColor = '#fff';
+						  	controlUI.style.border = '2px solid #fff';
+						  	controlUI.style.borderRadius = '3px';
+						  	controlUI.style.boxShadow = '0 2px 6px rgba(0,0,0,.3)';
+						  	controlUI.style.cursor = 'pointer';
+						  	controlUI.style.marginBottom = '22px';
+						  	controlUI.style.textAlign = 'left';
+						  	legend.appendChild(controlUI);
+	
+						  	// Set CSS for the control interior.
+						  	var controlText = document.createElement('div');
+						  	controlText.setAttribute("id", "legendText");
+						  	controlText.style.color = 'rgb(25,25,25)';
+						  	controlText.style.fontFamily = 'Roboto,Arial,sans-serif';
+						  	controlText.style.fontSize = '14px';
+						  	controlText.style.lineHeight = '20px';
+						  	controlText.style.paddingLeft = '5px';
+						  	controlText.style.paddingRight = '5px';
+						  	controlText.innerHTML = '<h6>District Informations</h6>';
+						  	controlUI.appendChild(controlText);
+	
+						    map.controls[google.maps.ControlPosition.LEFT_BOTTOM].push(legend);
+						}//end init map
+					}
+				</script>
+				<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD3Ehd1i_cthry6puSHjSOLHA8I4QLsPvw&callback=initMap"></script>
+			</div>
+			</body>

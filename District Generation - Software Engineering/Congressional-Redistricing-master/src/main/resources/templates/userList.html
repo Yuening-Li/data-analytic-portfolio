@@ -1,0 +1,38 @@
+
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+<link rel="stylesheet" type="text/css" th:href="@{/css/userTable.css}" />
+</head>
+<body>
+	<div id = "container">
+	<div id = "content">
+	<!-- put button add user -->
+	<input type ="button" value="Add User" 
+			onclick="window.location.href='showFormForAdd';return false;"
+			class = "add-button"/>
+		<table>
+			<tr>
+			<th>First Name</th>
+			<th>Last Name</th>
+			<th>Email</th>
+			<th>Action</th>
+			</tr>			
+			<th:block th:each="user : ${users}">
+			      <tr>
+			         <td th:text="${user.firstName}">...</td>
+			         <td th:text="${user.lastName}">...</td>
+			         <td th:text="${user.email}">...</td>
+			         <td><a th:text="update"
+			          th:href="@{/showFormForUpdate(id=${user.id})}">update</a>
+			          <a th:text="delete"
+			          th:href="@{/showFormForDelete(id=${user.id})}"
+			          	onClick ="if(!confirm('Are you sure to delete this user?'))return false">delete</a>
+			   	   		</td>
+			   	   </tr>
+  			 </th:block>
+		</table>
+	</div>
+	</div>
+</body>
+</html>

@@ -1,0 +1,620 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+
+<head>
+    <meta charset="utf-8">
+    
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+
+    <!-- Bootstrap CSS CDN -->
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/css/bootstrap.min.css" integrity="sha384-9gVQ4dYFwwWSjIDZnLEWnxCjeSWFphJiwGPXr1jddIhOegiu1FwO5qRGvFXOdJZ4" crossorigin="anonymous">
+    <!-- Our Custom CSS -->
+    <link rel="stylesheet" href="../css/stateStyle.css">
+    <link rel="stylesheet" type="text/css" th:href="@{/css/home.css}">
+    <!-- Google API -->
+	<script src="https://ajax.googleapis.com/ajax/libs/jquery/3.3.1/jquery.min.js"></script>
+	<script type="text/javascript" th:src="@{/js/helper.js}"></script>
+
+    <!-- Font Awesome JS -->
+    <!-- <script defer src="https://use.fontawesome.com/releases/v5.0.13/js/solid.js" integrity="sha384-tzzSw1/Vo+0N5UhStP3bvwWPq+uvzCMfrN1fEFe+xBmv1C/AtVX5K0uZtmcHitFZ" crossorigin="anonymous"></script>
+    <script defer src="https://use.fontawesome.com/releases/v5.0.13/js/fontawesome.js" integrity="sha384-6OIrr52G08NpOFSZdxxz1xdNSndlD4vdcf/q2myIUVO0VsqaGHJsB0RaBE01VTOY" crossorigin="anonymous"></script> -->
+</head>
+
+<body>
+    <div class="wrapper">
+        <!-- Sidebar  -->
+        <nav id="sidebar">
+            <div class="sidebar-header">
+                <h3>Control Panel</h3>
+            </div>
+
+            <ul class="list-unstyled components">
+                <li class="active">
+	                <form id="run">
+						<div class="form-group">
+							<label for="formControlRange">Population</label> 
+							<input
+								type="range" class="form-control-range" id="popInput"
+								name="popInput" min="0" max="1" step="0.1" value = 0.5>
+						</div>
+						<div class="form-group">
+							<label for="formControlRange">Compactness</label> 
+							<input
+								type="range" class="form-control-range" id="compInput"
+								name="compInput" min="0" max="1" step="0.1" value = 0.5>
+						</div>
+						<div class="form-group">
+							<label for="formControlRange">Political Fairness</label> 
+							<input
+								type="range" class="form-control-range" id="fairInput"
+								name="fairInput" min="0" max="1" step="0.1" value = 0.5>
+						</div>
+
+						<div class="form-group">
+							<label for="formControlRange">Efficiency Gap</label> 
+							<input
+								type="range" class="form-control-range" id="gapInput"
+								name="gapInput" min="0" max="1" step="0.1" value = 0.5>
+						</div>
+						<div class="form-group">
+							<label for="Method Flag">Select Algorithm</label> <select
+								class="form-control" id="methodFlag" name="methodFlag"
+								onchange="disableDropdown()">
+								<option value="1">Simulated Annealing(Random)</option>
+								<option value="2">Simulated Annealing(Worst)</option>
+								<option value="3">Region Growth(Random)</option>
+								<option value="4">Region Growth(Incumbent)</option>
+							</select>
+						</div>
+						<div class="form-group">
+							<label for="Number of districts">Select Number of
+								District</label> <select class="form-control" id="num" name="num"
+								disabled>
+								<option value='4'>4</option>
+								<option value='5'>5</option>
+								<option value='6'>6</option>
+								<option value='7'>7</option>
+								<option value='8'>8</option>
+								<option value='9'>9</option>
+								<option value='10'>10</option>
+								<option value='11'>11</option>
+								<option value='12'>12</option>
+							</select>
+						</div>
+						
+						<button type="submit" class="btn btn-info" id="runButton" style = width:100%>Run</button>
+					</form>
+					<form id="pause">
+						<button type="submit" class="btn btn-info" id="pauseButton" style = width:100%>Pause</button>
+					</form>
+					<form id="resume">
+						<button type="submit" class="btn btn-info" id="resumeButton" style = width:100%>Resume</button>
+					</form>
+					<form id="stop">
+						<button type="submit" class="btn btn-info" id="stopButton" style = width:100%>Stop</button>
+					</form>
+					
+					<!-- <div class="alert" role="alert">
+  					Click to display <a th:href="@{/original}" class="alert-link">original state map</a>
+  					</div> -->
+					
+              </ul>
+        </nav>
+
+        <!-- Page Content  -->
+        <div id="content">
+
+            <nav class="navbar navbar-expand-lg navbar-light bg-light">
+                <div class="container-fluid">
+
+                    <button type="button" id="sidebarCollapse" class="btn btn-info">
+                        <i class="fas fa-align-left"></i>
+                        <span>Algorithm Settings</span>
+                    </button>
+                    <button class="btn btn-dark d-inline-block d-lg-none ml-auto" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
+                        <i class="fas fa-align-justify"></i>
+                    </button>
+
+                    <div class="collapse navbar-collapse" id="navbarSupportedContent">
+                        <ul class="nav navbar-nav ml-auto">
+                            <li class="nav-item active">
+                                <a class="nav-link" href="/">Home</a>
+                            </li>
+                            <li class="nav-item dropdown active">
+						        <a class="nav-link dropdown-toggle" href="/states" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+						          States
+						        </a>
+						        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+						          <a class="dropdown-item" th:href="@{/state/{id}(id=4)}">Arizona</a>
+						          <a class="dropdown-item" th:href="@{/state/{id}(id=8)}">Colorado</a>
+						          <a class="dropdown-item" th:href="@{/state/{id}(id=19)}">Iowa</a>
+						        </div>
+						      </li>   
+                            <li class="nav-item active">
+                                <a class="nav-link" data-toggle="modal" data-target="#Constitution">About</a>
+                                <div class="modal fade" id="Constitution" tabindex="-1" role="dialog" aria-labelledby="exampleModalLongTitle" aria-hidden="true">
+								  <div class="modal-dialog" role="document">
+								    <div class="modal-content">
+								      <div class="modal-header">
+								        <h5 class="modal-title" id="exampleModalLongTitle">Constitution</h5>
+								        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+								          <span aria-hidden="true">&times;</span>
+								        </button>
+								      </div>
+								       <div class="modal-body">
+								        
+<h3>Iowa</h3>
+ <p>•	Iowa must comply with constitutional equal population requirements. 
+Iowa statutes require state legislative districts to be as nearly equal as practicable except where necessary to comply with other requirements, and in no event may the overall average deviation exceed 1%, or the deviation for any one district exceed 5%. [Iowa Code § 42.4(1)]</p>
+ <p>•	Iowa must also, abide by section 2 of the Voting Rights Act. Iowa law further provides that districts may not be drawn for the purpose of augmenting or diluting the voting strength of a language or racial minority group; that language has not yet been construed by a court. [Iowa Code § 42.4(5)] </p>
+ <p>•	Iowa law also requires that districts be convenient and contiguous, preserve the integrity of political subdivisions like counties and cities, and to the extent consistent with other requirements, reasonably compact -- defined in terms of regular polygons, comparison of length and width, and overall boundary perimeter. [Iowa Const. art. III, §§ 34, 37; Iowa Code § 42.4; In re Legislative Districting of General Assembly, 193 N.W.2d 784 (Iowa 1972)] </p>
+<p><a th:href="@{http://publications.iowa.gov/135/1/history/7-7.html}">Source</a></p>
+
+<h3>Colorado</h3>
+<p>•	Like all states, Colorado must comply with constitutional equal population requirements; for its state legislative lines, Colorado has further set a maximum five percent deviation between the largest and smallest districts. [Colo. Const. art. V, § 46]</p>
+<p>•	Colorado must also, like all states, abide by section 2 of the Voting Rights Act.</p>
+<p>•	For its state legislative lines, the Colorado constitution further requires that districts be contiguous, and that they be as compact as possible based on their total perimeter. [Colo. Const. art. V, §§ 46-47; In re Reapportionment of Colo. General Assembly, 46 P.3d 1083 (Colo. 2002); In re Reapportionment of Colo. General Assembly, 45 P.3d 1237 (Colo. 2002); In re Colo. General Assembly, 828 P.2d 185 (Colo. 1992)]</p>
+<p><a th:href="@{http://redistricting.lls.edu/states-CO.php}">Source</a></p>
+
+<h3>Arizona</h3>
+<p>•	Like all states, Arizona must comply with constitutional equal population requirements, and state law further asks that districts have equal population to the extent practicable. [Ariz. Const. art. IV, pt. 2, § 1(14)(B)]</p>
+<p>•	Arizona must also, like all states, abide by section 2 of the Voting Rights Act. </p>
+<p>•	The Arizona constitution requires that the district map begin with a "grid-like pattern." Districts are then adjusted to be contiguous, geographically compact, and respect communities of interest -- all to the extent practicable. [Ariz. Const. art. IV, pt. 2, § 1(14); Ariz. Minority Coal. for Fair Redistricting v. Ariz. Ind. Redistricting Comm'n, 121 P.3d 843 (Ariz. Ct. Appeal 2005)] </p>
+<p><a th:href="@{https://www.azleg.gov/FormatDocument.asp?inDoc=/const/4/1.p2.htm}">Source</a></p>
+
+								        
+								      </div>
+								      <div class="modal-footer">
+								        <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+								      </div>
+								    </div>
+								  </div>
+								</div>
+                            </li>
+                            <li class="nav-item dropdown active">
+						        <a class="nav-link dropdown-toggle" href="/states" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false"> Account </a>
+						        <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+						          <a class="dropdown-item" id = "saveMap">Save Map</a>
+						          <a class="dropdown-item" id = "saveWeights">Save Weights</a>
+						          <a class="dropdown-item" id = "loadWeights">Load Weights</a>
+						          <a class="dropdown-item" href="/logout">Log out</a>
+						        </div>
+						      </li>
+						       
+                        </ul>
+                    </div>
+                </div>
+            </nav>
+			
+	<div class="container-fluid">
+	  	<div id="map"></div>
+	  		<script th:inline="javascript">	
+				/*<![CDATA[*/
+					var stateId = /*[[${id}]]*/
+					var size = /*[[${districtSize}]]*/
+				/*]]>*/
+				
+				var map;
+				//Iowa
+				if(stateId === 19){
+					function initMap() {
+						map = new google.maps.Map(document.getElementById('map'), {
+							zoom : 7,
+							center : new google.maps.LatLng(42.2, -93.4),
+							fullscreenControl: true,
+							fullscreenControlOptions: {
+						        position: google.maps.ControlPosition.TOP_RIGHT
+						    },
+						    mapTypeControl: false,
+						    streetViewControl: false
+							
+						});
+						map.data.loadGeoJson('../json/Iowa/IA_CD1.json');
+						map.data.loadGeoJson('../json/Iowa/IA_CD2.json');
+						map.data.loadGeoJson('../json/Iowa/IA_CD3.json');
+						map.data.loadGeoJson('../json/Iowa/IA_CD4.json');
+						
+						//set style to polygons
+						map.data.setStyle(function(feature) {
+							var color = feature.getProperty('COLOR');
+							var weight = feature.getProperty('strokeWeight');
+							return {
+								fillColor : color,
+								strokeWeight : weight,
+								fillOpacity: 1
+							};
+						});
+				
+						
+						map.data.addListener('mouseover', function(event) {
+							map.data.revertStyle();
+							map.data.overrideStyle(event.feature, {
+								strokeWeight : 3
+							});
+							document.getElementById('infoText').innerHTML = '<h6>Precinct Informations</h6>' 
+							+  '<b>DistrictId: </b>' +  event.feature.getProperty('DISTRICT') + '<br />'
+							+  '<b>PrecinctId: </b>' +  event.feature.getProperty('GEOID10') + '<br />'
+							+  '<b>Name: </b>' +  event.feature.getProperty('NAME') + '<br />'
+							+  '<b>Population: </b>' +  event.feature.getProperty('POP100') + '<br />'
+							+  '<b>Rep Vote: </b>' +  event.feature.getProperty('REP_VOT') + '<br />'
+							+  '<b>Dem Vote: </b>' +  event.feature.getProperty('DEM_VOT') + '<br />'
+							;
+							
+						});
+						map.data.addListener('mouseout', function(event) {
+							document.getElementById('infoText').innerHTML = '<h6>Precinct Informations</h6>' + 'Hover over a precinct';
+							map.data.revertStyle();
+						});
+							
+						// Create a div to hold the control.
+						var info = document.createElement('div');
+						info.setAttribute("id", "info");
+						var infoUI = document.createElement('div');
+						infoUI.style.backgroundColor = '#fff';
+						infoUI.style.border = '2px solid #fff';
+						infoUI.style.borderRadius = '3px';
+						infoUI.style.boxShadow = '0 2px 6px rgba(0,0,0,.3)';
+						infoUI.style.cursor = 'pointer';
+						infoUI.style.marginBottom = '22px';
+						infoUI.style.textAlign = 'left';
+						info.appendChild(infoUI);
+
+						// Set CSS for the control interior.
+						var infoText = document.createElement('div');
+						infoText.setAttribute("id", "infoText");
+						infoText.style.color = 'rgb(25,25,25)';
+						infoText.style.fontFamily = 'Roboto,Arial,sans-serif';
+						infoText.style.fontSize = '14px';
+						infoText.style.lineHeight = '20px';
+						infoText.style.paddingLeft = '5px';
+						infoText.style.paddingRight = '5px';
+						infoText.innerHTML = '<h6>Precinct Informations</h6>' + 'Hover over a precinct';
+						infoUI.appendChild(infoText);
+
+						map.controls[google.maps.ControlPosition.TOP_LEFT].push(info);
+						
+						var legend = document.createElement('div');
+						info.setAttribute("id", "legend");
+						var controlUI = document.createElement('div');
+					  	controlUI.style.backgroundColor = '#fff';
+					  	controlUI.style.border = '2px solid #fff';
+					  	controlUI.style.borderRadius = '3px';
+					  	controlUI.style.boxShadow = '0 2px 6px rgba(0,0,0,.3)';
+					  	controlUI.style.cursor = 'pointer';
+					  	controlUI.style.marginBottom = '22px';
+					  	controlUI.style.textAlign = 'left';
+					  	legend.appendChild(controlUI);
+
+					  	// Set CSS for the control interior.
+					  	var controlText = document.createElement('div');
+					  	controlText.setAttribute("id", "legendText");
+					  	controlText.style.color = 'rgb(25,25,25)';
+					  	controlText.style.fontFamily = 'Roboto,Arial,sans-serif';
+					  	controlText.style.fontSize = '14px';
+					  	controlText.style.lineHeight = '20px';
+					  	controlText.style.paddingLeft = '5px';
+					  	controlText.style.paddingRight = '5px';
+					  	controlText.innerHTML = '<h6>District Informations</h6>';
+					  	controlUI.appendChild(controlText);
+
+					    map.controls[google.maps.ControlPosition.LEFT_BOTTOM].push(legend);
+					}//end init map
+					
+				}
+				//Arizona
+				else if (stateId === 4){
+					function initMap() {
+						map = new google.maps.Map(document.getElementById('map'), {
+							zoom : 7,
+							center : new google.maps.LatLng(34.04, -113.09),
+							fullscreenControl: true,
+							fullscreenControlOptions: {
+						        position: google.maps.ControlPosition.TOP_RIGHT
+						    },
+						    mapTypeControl: false,
+						    streetViewControl: false,
+							
+						});
+						map.data.loadGeoJson('../json/Arizona/AZ_CD1.json');
+						map.data.loadGeoJson('../json/Arizona/AZ_CD2.json');
+						map.data.loadGeoJson('../json/Arizona/AZ_CD3.json');
+						map.data.loadGeoJson('../json/Arizona/AZ_CD4.json');
+						map.data.loadGeoJson('../json/Arizona/AZ_CD5.json');
+						map.data.loadGeoJson('../json/Arizona/AZ_CD6.json');
+						map.data.loadGeoJson('../json/Arizona/AZ_CD7.json');
+						map.data.loadGeoJson('../json/Arizona/AZ_CD8.json');
+						map.data.loadGeoJson('../json/Arizona/AZ_CD9.json');
+						
+						//set style to polygons
+						map.data.setStyle(function(feature) {
+							var color = feature.getProperty('COLOR');
+							var weight = feature.getProperty('strokeWeight');
+							return {
+								fillColor : color,
+								strokeWeight : weight,
+								fillOpacity: 0.9
+							};
+						});
+						
+						
+						
+						map.data.addListener('mouseover', function(event) {
+							map.data.revertStyle();
+							map.data.overrideStyle(event.feature, {
+								strokeWeight : 3
+							});
+							document.getElementById('infoText').innerHTML = '<h6>Precinct Informations</h6>' 
+							+  '<b>DistrictId: </b>' +  event.feature.getProperty('DISTRICT') + '<br />'
+							+  '<b>PrecinctId: </b>' +  event.feature.getProperty('GEOID10') + '<br />'
+							+  '<b>Name: </b>' +  event.feature.getProperty('NAME') + '<br />'
+							+  '<b>Population: </b>' +  event.feature.getProperty('POP100') + '<br />'
+							+  '<b>Rep Vote: </b>' +  event.feature.getProperty('REP_VOT') + '<br />'
+							+  '<b>Dem Vote: </b>' +  event.feature.getProperty('DEM_VOT') + '<br />'
+							;
+							
+						});
+						map.data.addListener('mouseout', function(event) {
+							document.getElementById('infoText').innerHTML = '<h6>Precinct Informations</h6>' + 'Hover over a precinct';
+							map.data.revertStyle();
+						});
+							
+						// Create a div to hold the control.
+						var info = document.createElement('div');
+						info.setAttribute("id", "info");
+						var infoUI = document.createElement('div');
+						infoUI.style.backgroundColor = '#fff';
+						infoUI.style.border = '2px solid #fff';
+						infoUI.style.borderRadius = '3px';
+						infoUI.style.boxShadow = '0 2px 6px rgba(0,0,0,.3)';
+						infoUI.style.cursor = 'pointer';
+						infoUI.style.marginBottom = '22px';
+						infoUI.style.textAlign = 'left';
+						info.appendChild(infoUI);
+
+						// Set CSS for the control interior.
+						var infoText = document.createElement('div');
+						infoText.setAttribute("id", "infoText");
+						infoText.style.color = 'rgb(25,25,25)';
+						infoText.style.fontFamily = 'Roboto,Arial,sans-serif';
+						infoText.style.fontSize = '14px';
+						infoText.style.lineHeight = '20px';
+						infoText.style.paddingLeft = '5px';
+						infoText.style.paddingRight = '5px';
+						infoText.innerHTML = '<h6>Precinct Informations</h6>' + 'Hover over a precinct';
+						infoUI.appendChild(infoText);
+
+						map.controls[google.maps.ControlPosition.TOP_LEFT].push(info);
+						
+						var legend = document.createElement('div');
+						info.setAttribute("id", "legend");
+						var controlUI = document.createElement('div');
+					  	controlUI.style.backgroundColor = '#fff';
+					  	controlUI.style.border = '2px solid #fff';
+					  	controlUI.style.borderRadius = '3px';
+					  	controlUI.style.boxShadow = '0 2px 6px rgba(0,0,0,.3)';
+					  	controlUI.style.cursor = 'pointer';
+					  	controlUI.style.marginBottom = '22px';
+					  	controlUI.style.textAlign = 'left';
+					  	legend.appendChild(controlUI);
+
+					  	// Set CSS for the control interior.
+					  	var controlText = document.createElement('div');
+					  	controlText.setAttribute("id", "legendText");
+					  	controlText.style.color = 'rgb(25,25,25)';
+					  	controlText.style.fontFamily = 'Roboto,Arial,sans-serif';
+					  	controlText.style.fontSize = '14px';
+					  	controlText.style.lineHeight = '20px';
+					  	controlText.style.paddingLeft = '5px';
+					  	controlText.style.paddingRight = '5px';
+					  	controlText.innerHTML = '<h6>District Informations</h6>';
+					  	controlUI.appendChild(controlText);
+
+					    map.controls[google.maps.ControlPosition.LEFT_BOTTOM].push(legend);
+					}//end init map
+				}
+				
+				//Colorado
+				else if (stateId === 8){
+					function initMap() {
+						map = new google.maps.Map(document.getElementById('map'), {
+							zoom : 7,
+							center : new google.maps.LatLng(38.8, -105.7),
+							fullscreenControl: true,
+							fullscreenControlOptions: {
+						        position: google.maps.ControlPosition.TOP_RIGHT
+						    },
+						    mapTypeControl: false,
+						    streetViewControl: false,
+							
+						});
+						map.data.loadGeoJson('../json/Colorado/CO_CD1.json');
+						map.data.loadGeoJson('../json/Colorado/CO_CD2.json');
+						map.data.loadGeoJson('../json/Colorado/CO_CD3.json');
+						map.data.loadGeoJson('../json/Colorado/CO_CD4.json');
+						map.data.loadGeoJson('../json/Colorado/CO_CD5.json');
+						map.data.loadGeoJson('../json/Colorado/CO_CD6.json');
+						map.data.loadGeoJson('../json/Colorado/CO_CD7.json');
+
+						
+						//set style to polygons
+						map.data.setStyle(function(feature) {
+							var color = feature.getProperty('COLOR');
+							var weight = feature.getProperty('strokeWeight');
+							return {
+								fillColor : color,
+								strokeWeight : weight,
+								fillOpacity: 0.9
+							};
+						});
+						
+						
+						
+						map.data.addListener('mouseover', function(event) {
+							map.data.revertStyle();
+							map.data.overrideStyle(event.feature, {
+								strokeWeight : 3
+							});
+							document.getElementById('infoText').innerHTML = '<h6>Precinct Informations</h6>' 
+							+  '<b>DistrictId: </b>' +  event.feature.getProperty('DISTRICT') + '<br />'
+							+  '<b>PrecinctId: </b>' +  event.feature.getProperty('GEOID10') + '<br />'
+							+  '<b>Name: </b>' +  event.feature.getProperty('NAME') + '<br />'
+							+  '<b>Population: </b>' +  event.feature.getProperty('POP100') + '<br />'
+							+  '<b>Rep Vote: </b>' +  event.feature.getProperty('REP_VOT') + '<br />'
+							+  '<b>Dem Vote: </b>' +  event.feature.getProperty('DEM_VOT') + '<br />'
+							;
+							
+						});
+						map.data.addListener('mouseout', function(event) {
+							document.getElementById('infoText').innerHTML = '<h6>Precinct Informations</h6>' + 'Hover over a precinct';
+							map.data.revertStyle();
+						});
+							
+						// Create a div to hold the control.
+						var info = document.createElement('div');
+						info.setAttribute("id", "info");
+						var infoUI = document.createElement('div');
+						infoUI.style.backgroundColor = '#fff';
+						infoUI.style.border = '2px solid #fff';
+						infoUI.style.borderRadius = '3px';
+						infoUI.style.boxShadow = '0 2px 6px rgba(0,0,0,.3)';
+						infoUI.style.cursor = 'pointer';
+						infoUI.style.marginBottom = '22px';
+						infoUI.style.textAlign = 'left';
+						info.appendChild(infoUI);
+
+						// Set CSS for the control interior.
+						var infoText = document.createElement('div');
+						infoText.setAttribute("id", "infoText");
+						infoText.style.color = 'rgb(25,25,25)';
+						infoText.style.fontFamily = 'Roboto,Arial,sans-serif';
+						infoText.style.fontSize = '14px';
+						infoText.style.lineHeight = '20px';
+						infoText.style.paddingLeft = '5px';
+						infoText.style.paddingRight = '5px';
+						infoText.innerHTML = '<h6>Precinct Informations</h6>' + 'Hover over a precinct';
+						infoUI.appendChild(infoText);
+
+						map.controls[google.maps.ControlPosition.TOP_LEFT].push(info);
+						
+						var legend = document.createElement('div');
+						info.setAttribute("id", "legend");
+						var controlUI = document.createElement('div');
+					  	controlUI.style.backgroundColor = '#fff';
+					  	controlUI.style.border = '2px solid #fff';
+					  	controlUI.style.borderRadius = '3px';
+					  	controlUI.style.boxShadow = '0 2px 6px rgba(0,0,0,.3)';
+					  	controlUI.style.cursor = 'pointer';
+					  	controlUI.style.marginBottom = '22px';
+					  	controlUI.style.textAlign = 'left';
+					  	legend.appendChild(controlUI);
+
+					  	// Set CSS for the control interior.
+					  	var controlText = document.createElement('div');
+					  	controlText.setAttribute("id", "legendText");
+					  	controlText.style.color = 'rgb(25,25,25)';
+					  	controlText.style.fontFamily = 'Roboto,Arial,sans-serif';
+					  	controlText.style.fontSize = '14px';
+					  	controlText.style.lineHeight = '20px';
+					  	controlText.style.paddingLeft = '5px';
+					  	controlText.style.paddingRight = '5px';
+					  	controlText.innerHTML = '<h6>District Informations</h6>';
+					  	controlUI.appendChild(controlText);
+
+					    map.controls[google.maps.ControlPosition.LEFT_BOTTOM].push(legend);
+					}//end init map
+				}
+			</script>
+			<script async defer src="https://maps.googleapis.com/maps/api/js?key=AIzaSyD3Ehd1i_cthry6puSHjSOLHA8I4QLsPvw&callback=initMap"></script>
+		</div>
+            
+        </div>
+    </div>
+	
+	<script src="https://code.jquery.com/jquery-3.1.1.min.js">
+    <!-- jQuery CDN - Slim version (=without AJAX) -->
+    <!-- <script src="https://code.jquery.com/jquery-3.3.1.slim.min.js" integrity="sha384-q8i/X+965DzO0rT7abK41JStQIAqVgRVzpbzo5smXKp4YfRvH+8abtTE1Pi6jizo" crossorigin="anonymous"></script> -->
+    <!-- Popper.JS -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.14.0/umd/popper.min.js" integrity="sha384-cs/chFZiN24E4KMATLdqdvsezGxaGsi4hLGOzlXwp5UZB1LY//20VyM2taTB4QvJ" crossorigin="anonymous"></script>
+    <!-- Bootstrap JS -->
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.1.0/js/bootstrap.min.js" integrity="sha384-uefMccjFJAIv6A+rW+L4AHf99KvxDjWSu1z9VI8SKNVmz4sk7buKt/6v9KI65qnm" crossorigin="anonymous"></script>
+
+    <script type="text/javascript">
+	    
+        $(document).ready(function () {
+            $('#sidebarCollapse').on('click', function () {
+                $('#sidebar').toggleClass('active');
+            });
+        });
+        
+        $('#saveWeights').on('click', function () {
+        	saveWeights();
+        });
+        
+        $('#loadWeights').on('click', function () {
+        	loadWeights();
+        	console.log(document.getElementById("popInput").getAttribute("value"));
+        	console.log(document.getElementById("compInput").getAttribute("value"));
+        	console.log(document.getElementById("fairInput").getAttribute("value"));
+        	console.log(document.getElementById("gapInput").getAttribute("value"));
+      	});
+
+        $('#saveMap').on('click', function () {
+        	alert("Saving map");
+        });
+        
+        $('#originalMap').on('click', function () {
+        	alert("Display original map");
+        });
+        	   
+        
+        $(document).ready(function() {
+		$("#run").submit(function(event) {
+			document.getElementById("runButton").disabled = true;
+			event.preventDefault();
+			run();
+			renderRg();
+			renderSa();
+			listenOnSa();
+			listenOnRg();
+			update();
+		});
+
+		})
+		$(document).ready(function() {
+			$("#pause").submit(function(event) {
+				event.preventDefault();
+				pause();
+			});
+	
+		})
+		
+		$(document).ready(function() {
+			$("#resume").submit(function(event) {
+				event.preventDefault();
+				resume();
+			});
+	
+		})
+		
+		$(document).ready(function() {
+			$("#stop").submit(function(event) {
+				event.preventDefault();
+				stop();
+				document.getElementById("runButton").disabled = false;
+			});
+		})
+		
+		function disableDropdown(){
+			
+			if(document.getElementById('methodFlag').value == 3 || document.getElementById('methodFlag').value == 4){
+				document.getElementById('num').disabled=false;
+			}
+			else{
+				document.getElementById('num').disabled=true;
+			}
+		}		
+    </script>
+</body>
+
+</html>
